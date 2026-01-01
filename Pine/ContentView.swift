@@ -11,7 +11,9 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var session = LanguageModelSession()
+    @State private var session = LanguageModelSession(
+        tools: [BashShell()],
+    )
     @State private var transcriptCount = 0
     @State private var inputText = ""
 
