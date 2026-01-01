@@ -5,49 +5,64 @@
 //  Created by Bing-Chang Lai on 12/31/25.
 //
 
+import FoundationModels
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var session = LanguageModelSession()
+    @State private var transcriptCount = 0
+    @State private var inputText = ""
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(session.transcript) { entry in
+                    switch entry {
+                    case let .instructions(instructions):
+                        InstructionsView(instructions)
+                    case let .prompt(prompt):
+                        PromptView(prompt)
+                    case let .toolCalls(toolCalls):
+                        ToolCallsView(toolCalls)
+                    case let .toolOutput(toolOutput):
+                        ToolOutputView(toolOutput)
+                    case let .response(response):
+                        ResponseView(response)
+                    @unknown default:
+                        Text("Unknown entry type")
                     }
                 }
-                .onDelete(perform: deleteItems)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-            .toolbar {
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+            .padding()
+        }
+        Divider()
+
+        HStack {
+            TextField("Type your message...", text: $inputText)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    sendMessage()
                 }
+
+            Button("Send") {
+                sendMessage()
             }
-        } detail: {
-            Text("Select an item")
         }
+        .padding()
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
+    private func sendMessage() {
+        let input = inputText
+        inputText = ""
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+        Task { @MainActor in
+            do {
+                _ = try await session.respond(to: input)
+                transcriptCount += 1
+            } catch {
+                print("Error: \(error)")
             }
         }
     }
