@@ -1,0 +1,7 @@
+# Pine Configuration
+working_directory = "/Users/bing-changlai/Projects/platypus.rust"
+enabled_tools = ["bashShell"]
+
+[model_parameters]
+temperature = 0.7
+max_tokens = 4096

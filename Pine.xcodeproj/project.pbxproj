@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		625DC3C22F07731F00C65A92 /* TOMLKit in Frameworks */ = {isa = PBXBuildFile; productRef = 625DC3C12F07731F00C65A92 /* TOMLKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		625DC3852F05ED2400C65A92 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -45,6 +49,11 @@
 			path = PineUITests;
 			sourceTree = "<group>";
 		};
+		625DC3C42F0773F700C65A92 /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Config;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +61,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				625DC3C22F07731F00C65A92 /* TOMLKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +85,7 @@
 		625DC36C2F05ED2300C65A92 = {
 			isa = PBXGroup;
 			children = (
+				625DC3C42F0773F700C65A92 /* Config */,
 				625DC3772F05ED2300C65A92 /* Pine */,
 				625DC3872F05ED2400C65A92 /* PineTests */,
 				625DC3912F05ED2400C65A92 /* PineUITests */,
@@ -112,6 +123,7 @@
 			);
 			name = Pine;
 			packageProductDependencies = (
+				625DC3C12F07731F00C65A92 /* TOMLKit */,
 			);
 			productName = Pine;
 			productReference = 625DC3752F05ED2300C65A92 /* Pine.app */;
@@ -195,6 +207,9 @@
 			);
 			mainGroup = 625DC36C2F05ED2300C65A92;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				625DC3C02F07730700C65A92 /* XCRemoteSwiftPackageReference "TOMLKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 625DC3762F05ED2300C65A92 /* Products */;
 			projectDirPath = "";
@@ -561,6 +576,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		625DC3C02F07730700C65A92 /* XCRemoteSwiftPackageReference "TOMLKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LebJe/TOMLKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		625DC3C12F07731F00C65A92 /* TOMLKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 625DC3C02F07730700C65A92 /* XCRemoteSwiftPackageReference "TOMLKit" */;
+			productName = TOMLKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 625DC36D2F05ED2300C65A92 /* Project object */;
 }

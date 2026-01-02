@@ -11,11 +11,28 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var session = LanguageModelSession(
-        tools: [BashShell()],
-    )
+    @State private var session: LanguageModelSession
     @State private var transcriptCount = 0
     @State private var inputText = ""
+
+    init() {
+        let config = Configuration.load()
+        let systemPrompt = Configuration.loadSystemPrompt()
+
+        let tools: [any Tool] = config.enabledTools.compactMap { toolName in
+            switch toolName {
+            case "bashShell":
+                return BashShell(workingDirectory: config.workingDirectory ?? FileManager.default.currentDirectoryPath)
+            default:
+                return nil
+            }
+        }
+
+        _session = State(initialValue: LanguageModelSession(
+            tools: tools,
+            instructions: systemPrompt
+        ))
+    }
 
     var body: some View {
         ScrollView {

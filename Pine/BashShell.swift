@@ -11,6 +11,11 @@ import FoundationModels
 struct BashShell: Tool {
   let name = "bashShell"
   let description = "Execute a bash command in a new shell"
+  let workingDirectory: String
+
+  init(workingDirectory: String = FileManager.default.currentDirectoryPath) {
+    self.workingDirectory = workingDirectory
+  }
 
   @Generable
   struct Arguments {
@@ -33,13 +38,15 @@ struct BashShell: Tool {
   typealias Output = ProcessOutput
 
   func call(arguments: Arguments) async throws -> Self.Output {
-    let process = Process()
-    process.launchPath = "/bin/bash"
+    let shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
 
-    var args: [String] = [ "-c", arguments.command ]
+    let process = Process()
+    process.launchPath = shell
+
+    var args: [String] = [ "-l", "-c", arguments.command ]
     args.append(contentsOf: arguments.arguments)
     process.arguments = args
-    process.currentDirectoryURL = URL(filePath: "/Users/bing-changlai/Projects/Libra")
+    process.currentDirectoryURL = URL(filePath: workingDirectory)
 
     let outputPipe = Pipe()
     let errorPipe = Pipe()
