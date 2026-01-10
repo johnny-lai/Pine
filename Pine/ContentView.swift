@@ -11,77 +11,44 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var session: LanguageModelSession
-    @State private var transcriptCount = 0
-    @State private var inputText = ""
-
-    init() {
-        let config = Configuration.load()
-        let systemPrompt = Configuration.loadSystemPrompt()
-
-        let tools: [any Tool] = config.enabledTools.compactMap { toolName in
-            switch toolName {
-            case "bashShell":
-                return BashShell(workingDirectory: config.workingDirectory ?? FileManager.default.currentDirectoryPath)
-            default:
-                return nil
-            }
-        }
-
-        _session = State(initialValue: LanguageModelSession(
-            tools: tools,
-            instructions: systemPrompt
-        ))
-    }
+    @Query private var sessions: [Session]
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(session.transcript) { entry in
-                    switch entry {
-                    case let .instructions(instructions):
-                        InstructionsView(instructions)
-                    case let .prompt(prompt):
-                        PromptView(prompt)
-                    case let .toolCalls(toolCalls):
-                        ToolCallsView(toolCalls)
-                    case let .toolOutput(toolOutput):
-                        ToolOutputView(toolOutput)
-                    case let .response(response):
-                        ResponseView(response)
-                    @unknown default:
-                        Text("Unknown entry type")
+        NavigationSplitView {
+            List {
+                ForEach(sessions) { session in
+                    NavigationLink {
+                        ChatView()
+                    } label: {
+                        Text(session.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                    }
+                }
+                .onDelete(perform: removeSessions)
+            }
+            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+            .toolbar {
+                ToolbarItem {
+                    Button(action: newSession) {
+                        Label("New Session", systemImage: "plus")
                     }
                 }
             }
-            .padding()
+        } detail: {
+            Text("Select an session")
         }
-        Divider()
-
-        HStack {
-            TextField("Type your message...", text: $inputText)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    sendMessage()
-                }
-
-            Button("Send") {
-                sendMessage()
-            }
-        }
-        .padding()
     }
 
-    private func sendMessage() {
-        let input = inputText
-        inputText = ""
+    private func newSession() {
+        withAnimation {
+            let newSession = Session(timestamp: Date())
+            modelContext.insert(newSession)
+        }
+    }
 
-        Task { @MainActor in
-            do {
-                _ = try await session.respond(to: input)
-                transcriptCount += 1
-            } catch {
-                print("Error: \(error)")
+    private func removeSessions(offsets: IndexSet) {
+        withAnimation {
+            for index in offsets {
+                modelContext.delete(sessions[index])
             }
         }
     }
@@ -89,5 +56,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Session.self, inMemory: true)
 }

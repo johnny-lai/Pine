@@ -55,6 +55,7 @@ struct BashShell: Tool {
     process.standardError = errorPipe
 
     process.launch()
+    // Add to the transcript. This allows the transcript view to monitor progress
     process.waitUntilExit()
 
     let stdoutData =
