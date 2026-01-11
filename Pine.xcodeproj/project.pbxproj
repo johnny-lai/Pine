@@ -31,6 +31,8 @@
 		625DC3752F05ED2300C65A92 /* Pine.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pine.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		625DC3842F05ED2400C65A92 /* PineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		625DC38E2F05ED2400C65A92 /* PineUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PineUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		62FBDC7A2F14226F0070693B /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
+		62FBDC7B2F14226F0070693B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -85,6 +87,8 @@
 		625DC36C2F05ED2300C65A92 = {
 			isa = PBXGroup;
 			children = (
+				62FBDC7A2F14226F0070693B /* AGENTS.md */,
+				62FBDC7B2F14226F0070693B /* LICENSE */,
 				625DC3C42F0773F700C65A92 /* Config */,
 				625DC3772F05ED2300C65A92 /* Pine */,
 				625DC3872F05ED2400C65A92 /* PineTests */,
