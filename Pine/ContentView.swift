@@ -18,9 +18,9 @@ struct ContentView: View {
             List {
                 ForEach(sessions) { session in
                     NavigationLink {
-                        ChatView()
+                        ChatView(session: session)
                     } label: {
-                        Text(session.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                        Text(session.displayTitle)
                     }
                 }
                 .onDelete(perform: removeSessions)
@@ -40,8 +40,14 @@ struct ContentView: View {
 
     private func newSession() {
         withAnimation {
-            let newSession = Session(timestamp: Date())
+            let config = Configuration.load()
+            let newSession = Session(
+                timestamp: Date(),
+                workingDirectory: config.workingDirectory,
+                title: nil
+            )
             modelContext.insert(newSession)
+            try? modelContext.save()
         }
     }
 

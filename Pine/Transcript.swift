@@ -5,6 +5,7 @@
 //  Created by Bing-Chang Lai on 1/1/26.
 //
 
+import Foundation
 import FoundationModels
 
 public struct Transcript {
@@ -29,21 +30,62 @@ public struct Transcript {
 }
 
 
-//public struct Session {
-//    init (configuration: Configuration) {
-//
-//    }
-//
-//    public var languageModelSession: LanguageModelSession {
-//        // read agents.md instructions, etc?
-//        // or get from Configuration?
-//        // load from disk
-//        fatalError("Not implemented")
-//    }
-//
-//    public var workingDirectory: String // <-- is part of a agent's state?
-//
-//    public var transcript: Transcript {
-//        fatalError("Not implemented")
-//    }
-//}
+// MARK: - Transcript Serialization
+
+struct SerializableTranscriptEntry: Codable {
+    let id: String
+    let type: EntryType
+    let content: String
+
+    enum EntryType: String, Codable {
+        case instructions
+        case prompt
+        case response
+        case toolCalls
+        case toolOutput
+    }
+}
+
+extension Array where Element == FoundationModels.Transcript.Entry {
+    func serialize() throws -> Data {
+        let serializableEntries = self.compactMap { entry -> SerializableTranscriptEntry? in
+            switch entry {
+            case .instructions(let instructions):
+                return SerializableTranscriptEntry(
+                    id: String(describing: entry.id),
+                    type: .instructions,
+                    content: String(describing: instructions)
+                )
+            case .prompt(let prompt):
+                return SerializableTranscriptEntry(
+                    id: String(describing: entry.id),
+                    type: .prompt,
+                    content: String(describing: prompt)
+                )
+            case .response(let response):
+                return SerializableTranscriptEntry(
+                    id: String(describing: entry.id),
+                    type: .response,
+                    content: String(describing: response)
+                )
+            case .toolCalls(let toolCalls):
+                return SerializableTranscriptEntry(
+                    id: String(describing: entry.id),
+                    type: .toolCalls,
+                    content: String(describing: toolCalls)
+                )
+            case .toolOutput(let toolOutput):
+                return SerializableTranscriptEntry(
+                    id: String(describing: entry.id),
+                    type: .toolOutput,
+                    content: String(describing: toolOutput)
+                )
+            @unknown default:
+                return nil
+            }
+        }
+
+        let encoder = JSONEncoder()
+        return try encoder.encode(serializableEntries)
+    }
+}
