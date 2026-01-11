@@ -17,7 +17,16 @@ struct PromptView: View {
     }
 
     var body: some View {
-        Text("User: \(String(describing: prompt))")
-            .foregroundColor(.blue)
+        MessageBubble(
+            alignment: .trailing,
+            backgroundColor: ChatColors.userBubble,
+            textColor: ChatColors.userText,
+            icon: "person.fill",
+            label: "You"
+        ) {
+            Text(String(describing: prompt))
+                .font(ChatTypography.messageFont)
+                .lineSpacing(ChatTypography.messageLineSpacing)
+        }
     }
 }

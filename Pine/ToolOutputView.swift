@@ -10,13 +10,43 @@ import SwiftUI
 
 struct ToolOutputView: View {
     let toolOutput: Transcript.ToolOutput
+    @State private var isExpanded = false
 
     init(_ toolOutput: Transcript.ToolOutput) {
         self.toolOutput = toolOutput
     }
 
     var body: some View {
-        Text("Tool Output: \(String(describing: toolOutput))")
-            .foregroundColor(.cyan)
+        MessageBubble(
+            alignment: .leading,
+            backgroundColor: ChatColors.toolBubble,
+            textColor: ChatColors.toolText,
+            icon: "terminal.fill",
+            label: nil
+        ) {
+            VStack(alignment: .leading, spacing: 8) {
+                Button(action: { isExpanded.toggle() }) {
+                    HStack {
+                        Image(systemName: "terminal.fill")
+                            .foregroundColor(ChatColors.toolAccent)
+                        Text("Tool Output")
+                            .font(ChatTypography.labelFont)
+                            .foregroundColor(ChatColors.toolText)
+                        Spacer()
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(ChatColors.toolAccent)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                if isExpanded {
+                    Text(String(describing: toolOutput))
+                        .font(ChatTypography.toolFont)
+                        .foregroundColor(ChatColors.toolText)
+                        .textSelection(.enabled)
+                }
+            }
+        }
     }
 }

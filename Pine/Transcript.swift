@@ -48,44 +48,14 @@ struct SerializableTranscriptEntry: Codable {
 
 extension Array where Element == FoundationModels.Transcript.Entry {
     func serialize() throws -> Data {
-        let serializableEntries = self.compactMap { entry -> SerializableTranscriptEntry? in
-            switch entry {
-            case .instructions(let instructions):
-                return SerializableTranscriptEntry(
-                    id: String(describing: entry.id),
-                    type: .instructions,
-                    content: String(describing: instructions)
-                )
-            case .prompt(let prompt):
-                return SerializableTranscriptEntry(
-                    id: String(describing: entry.id),
-                    type: .prompt,
-                    content: String(describing: prompt)
-                )
-            case .response(let response):
-                return SerializableTranscriptEntry(
-                    id: String(describing: entry.id),
-                    type: .response,
-                    content: String(describing: response)
-                )
-            case .toolCalls(let toolCalls):
-                return SerializableTranscriptEntry(
-                    id: String(describing: entry.id),
-                    type: .toolCalls,
-                    content: String(describing: toolCalls)
-                )
-            case .toolOutput(let toolOutput):
-                return SerializableTranscriptEntry(
-                    id: String(describing: entry.id),
-                    type: .toolOutput,
-                    content: String(describing: toolOutput)
-                )
-            @unknown default:
-                return nil
-            }
-        }
+        // Try to use NSKeyedArchiver for serialization
+        return try NSKeyedArchiver.archivedData(withRootObject: self as NSArray, requiringSecureCoding: false)
+    }
 
-        let encoder = JSONEncoder()
-        return try encoder.encode(serializableEntries)
+    static func deserialize(from data: Data) throws -> [FoundationModels.Transcript.Entry] {
+        guard let entries = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: data) as? [FoundationModels.Transcript.Entry] else {
+            throw NSError(domain: "TranscriptDeserialization", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to deserialize transcript entries"])
+        }
+        return entries
     }
 }

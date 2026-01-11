@@ -54,16 +54,30 @@ struct ChatView: View {
             }
         }
 
-        _languageModelSession = State(initialValue: LanguageModelSession(
-            tools: tools,
-            instructions: systemPrompt
-        ))
+        // Try to restore transcript from saved data
+        var initialSession: LanguageModelSession
+        if let transcriptData = session.transcriptData,
+           let restoredTranscript = try? Self.deserializeTranscript(from: transcriptData) {
+            // Create session with restored transcript
+            initialSession = LanguageModelSession(
+                tools: tools,
+                transcript: restoredTranscript
+            )
+        } else {
+            // Create new session with no transcript
+            initialSession = LanguageModelSession(
+                tools: tools,
+                instructions: systemPrompt
+            )
+        }
+
+        _languageModelSession = State(initialValue: initialSession)
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: ChatLayout.bubbleSpacing) {
                     ForEach(languageModelSession.transcript) { entry in
                         switch entry {
                         case let .instructions(instructions):
@@ -81,7 +95,8 @@ struct ChatView: View {
                         }
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.vertical, 12)
             }
             Divider()
 
@@ -133,6 +148,11 @@ struct ChatView: View {
         } catch {
             print("Warning: Failed to save transcript: \(error)")
         }
+    }
+
+    private static func deserializeTranscript(from data: Data) throws -> FoundationModels.Transcript {
+        let entries = try [FoundationModels.Transcript.Entry].deserialize(from: data)
+        return FoundationModels.Transcript(entries: entries)
     }
 
     private func updateWorkingDirectory() {

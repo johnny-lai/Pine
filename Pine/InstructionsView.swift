@@ -16,7 +16,16 @@ struct InstructionsView: View {
     }
 
     var body: some View {
-        Text("System: \(String(describing: instructions))")
-            .foregroundColor(.gray)
+        MessageBubble(
+            alignment: .leading,
+            backgroundColor: ChatColors.systemBubble,
+            textColor: ChatColors.systemText,
+            icon: "gearshape.fill",
+            label: "System"
+        ) {
+            Text(String(describing: instructions))
+                .font(ChatTypography.messageFont)
+                .lineSpacing(ChatTypography.messageLineSpacing)
+        }
     }
 }

@@ -16,7 +16,16 @@ struct ResponseView: View {
     }
 
     var body: some View {
-        Text("Assistant: \(String(describing: response))")
-            .foregroundColor(.green)
+        MessageBubble(
+            alignment: .leading,
+            backgroundColor: ChatColors.assistantBubble,
+            textColor: ChatColors.assistantText,
+            icon: "cpu",
+            label: "Assistant"
+        ) {
+            Text(String(describing: response))
+                .font(ChatTypography.messageFont)
+                .lineSpacing(ChatTypography.messageLineSpacing)
+        }
     }
 }
