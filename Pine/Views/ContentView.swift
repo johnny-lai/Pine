@@ -18,7 +18,7 @@ struct ContentView: View {
             List {
                 ForEach(sessions) { session in
                     NavigationLink {
-                        ChatView(session: session)
+                        ChatView(viewModel: ChatViewModel(session: session, modelContext: modelContext))
                     } label: {
                         Text(session.displayTitle)
                     }

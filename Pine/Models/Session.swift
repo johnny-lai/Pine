@@ -55,47 +55,4 @@ final class Session {
     var displayTitle: String {
         title ?? "Session \(createdAt.formatted(date: .numeric, time: .shortened))"
     }
-
-    func initialLanguageModelSession() -> LanguageModelSession {
-        let config = Configuration.load()
-
-        // Use session's working directory with fallback chain
-        var workingDir = self.workingDirectory
-            ?? config.workingDirectory
-            ?? FileManager.default.currentDirectoryPath
-
-        // Validate directory exists
-        if !FileManager.default.fileExists(atPath: workingDir) {
-            workingDir = FileManager.default.currentDirectoryPath
-        }
-
-        let tools: [any Tool] = config.enabledTools.compactMap { toolName in
-            switch toolName {
-            case "bashShell":
-                return BashShell(workingDirectory: workingDir)
-            default:
-                return nil
-            }
-        }
-
-        // Try to restore transcript from saved data
-        var initialSession: LanguageModelSession
-        if self.transcript.isEmpty {
-            // Create new session with no transcript
-            let systemPrompt = Configuration.loadSystemPrompt()
-
-            initialSession = LanguageModelSession(
-                tools: tools,
-                instructions: systemPrompt
-            )
-        } else {
-            // Create session with restored transcript
-            initialSession = LanguageModelSession(
-                tools: tools,
-                transcript: self.transcript
-            )
-        }
-
-        return initialSession
-    }
 }

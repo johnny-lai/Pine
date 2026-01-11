@@ -10,37 +10,19 @@ import SwiftUI
 import SwiftData
 
 struct ChatView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Bindable var session: Session
-    @State private var languageModelSession: LanguageModelSession
+    @Bindable var viewModel: ChatViewModel
     @State private var transcriptCount = 0
     @State private var inputText = ""
 
-    private var workingDirectory: String {
-        let config = Configuration.load()
-        var workingDir = session.workingDirectory
-            ?? config.workingDirectory
-            ?? FileManager.default.currentDirectoryPath
-
-        if !FileManager.default.fileExists(atPath: workingDir) {
-            workingDir = FileManager.default.currentDirectoryPath
-        }
-
-        return workingDir
-    }
-
-    init(session: Session) {
-        self.session = session
-
-        let initialSession = session.initialLanguageModelSession()
-        _languageModelSession = State(initialValue: initialSession)
+    init(viewModel: ChatViewModel) {
+        self.viewModel = viewModel
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: ChatLayout.bubbleSpacing) {
-                    ForEach(languageModelSession.transcript) { entry in
+                    ForEach(self.viewModel.languageModelSession.transcript) { entry in
                         switch entry {
                         case let .instructions(instructions):
                             InstructionsView(instructions)
@@ -75,13 +57,10 @@ struct ChatView: View {
             }
             .padding()
         }
-        .workingDirectoryTitlebar(session: session)
-        .onChange(of: session.workingDirectory) { oldValue, newValue in
-            updateWorkingDirectory()
-        }
-        .onDisappear {
-            saveTranscript()
-        }
+//        .workingDirectoryTitlebar(session: session)
+//        .onChange(of: session.workingDirectory) { oldValue, newValue in
+//            updateWorkingDirectory()
+//        }
     }
 
     private func sendMessage() {
@@ -89,58 +68,13 @@ struct ChatView: View {
         inputText = ""
 
         Task { @MainActor in
-            do {
-                _ = try await languageModelSession.respond(to: input)
-                transcriptCount += 1
-
-                // Save transcript to Session after each interaction
-                saveTranscript()
-            } catch {
-                print("Error: \(error)")
-            }
-        }
-    }
-
-    private func saveTranscript() {
-        do {
-            session.transcript = languageModelSession.transcript
-            try modelContext.save()
-        } catch {
-            print("Warning: Failed to save transcript: \(error)")
+            _ = await viewModel.sendMessage(input)
+            transcriptCount += 1
         }
     }
 
     private func updateWorkingDirectory() {
-        let config = Configuration.load()
-        let systemPrompt = Configuration.loadSystemPrompt()
-
-        // Use session's working directory with fallback chain
-        var workingDir = session.workingDirectory
-            ?? config.workingDirectory
-            ?? FileManager.default.currentDirectoryPath
-
-        // Validate directory exists
-        if !FileManager.default.fileExists(atPath: workingDir) {
-            workingDir = FileManager.default.currentDirectoryPath
-        }
-
-        let tools: [any Tool] = config.enabledTools.compactMap { toolName in
-            switch toolName {
-            case "bashShell":
-                return BashShell(workingDirectory: workingDir)
-            default:
-                return nil
-            }
-        }
-
-        // Create new session with updated tools
-        languageModelSession = LanguageModelSession(
-            tools: tools,
-            instructions: systemPrompt
-        )
-
-        // Save the updated working directory
-        try? modelContext.save()
+        // TODO:
     }
 }
 
