@@ -12,7 +12,6 @@ import SwiftData
 struct ChatView: View {
     @Bindable var viewModel: ChatViewModel
     @State private var transcriptCount = 0
-    @State private var inputText = ""
 
     init(viewModel: ChatViewModel) {
         self.viewModel = viewModel
@@ -45,15 +44,17 @@ struct ChatView: View {
             Divider()
 
             HStack {
-                TextField("Type your message...", text: $inputText)
+                TextField("Type your message...", text: $viewModel.inputText)
                     .textFieldStyle(.roundedBorder)
+                    .disabled(viewModel.isLoading)
                     .onSubmit {
-                        sendMessage()
+                        Task { await viewModel.sendMessage() }
                     }
 
                 Button("Send") {
-                    sendMessage()
+                    Task { await viewModel.sendMessage() }
                 }
+                .disabled(viewModel.inputText.isEmpty || viewModel.isLoading)
             }
             .padding()
         }
@@ -61,16 +62,6 @@ struct ChatView: View {
 //        .onChange(of: session.workingDirectory) { oldValue, newValue in
 //            updateWorkingDirectory()
 //        }
-    }
-
-    private func sendMessage() {
-        let input = inputText
-        inputText = ""
-
-        Task { @MainActor in
-            _ = await viewModel.sendMessage(input)
-            transcriptCount += 1
-        }
     }
 
     private func updateWorkingDirectory() {

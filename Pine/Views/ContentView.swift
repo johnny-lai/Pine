@@ -10,7 +10,12 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.sessionService) private var sessionService
+    @Environment(\.configurationService) private var configurationService
+    @Environment(\.languageModelService) private var languageModelService
+    @Environment(\.toolFactory) private var toolFactory
+
+    @State private var viewModel: SessionListViewModel?
     @Query private var sessions: [Session]
 
     var body: some View {
@@ -18,17 +23,26 @@ struct ContentView: View {
             List {
                 ForEach(sessions) { session in
                     NavigationLink {
-                        ChatView(viewModel: ChatViewModel(session: session, modelContext: modelContext))
+                        if let languageModelService {
+                            ChatView(
+                                viewModel: ChatViewModel(
+                                    session: session,
+                                    languageModelService: languageModelService,
+                                    configService: configurationService,
+                                    toolFactory: toolFactory
+                                )
+                            )
+                        }
                     } label: {
                         Text(session.displayTitle)
                     }
                 }
-                .onDelete(perform: removeSessions)
+                .onDelete(perform: deleteSessions)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
             .toolbar {
                 ToolbarItem {
-                    Button(action: newSession) {
+                    Button(action: createNewSession) {
                         Label("New Session", systemImage: "plus")
                     }
                 }
@@ -36,25 +50,25 @@ struct ContentView: View {
         } detail: {
             Text("Select an session")
         }
-    }
-
-    private func newSession() {
-        withAnimation {
-            let config = Configuration.load()
-            let newSession = Session(
-                workingDirectory: config.workingDirectory,
-                title: nil
-            )
-            modelContext.insert(newSession)
-            try? modelContext.save()
+        .onAppear {
+            if viewModel == nil, let sessionService {
+                viewModel = SessionListViewModel(
+                    sessionService: sessionService,
+                    configService: configurationService
+                )
+            }
         }
     }
 
-    private func removeSessions(offsets: IndexSet) {
+    private func createNewSession() {
         withAnimation {
-            for index in offsets {
-                modelContext.delete(sessions[index])
-            }
+            viewModel?.createNewSession()
+        }
+    }
+
+    private func deleteSessions(offsets: IndexSet) {
+        withAnimation {
+            viewModel?.deleteSessions(at: offsets, from: sessions)
         }
     }
 }
