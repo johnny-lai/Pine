@@ -32,45 +32,7 @@ struct ChatView: View {
     init(session: Session) {
         self.session = session
 
-        let config = Configuration.load()
-        let systemPrompt = Configuration.loadSystemPrompt()
-
-        // Use session's working directory with fallback chain
-        var workingDir = session.workingDirectory
-            ?? config.workingDirectory
-            ?? FileManager.default.currentDirectoryPath
-
-        // Validate directory exists
-        if !FileManager.default.fileExists(atPath: workingDir) {
-            workingDir = FileManager.default.currentDirectoryPath
-        }
-
-        let tools: [any Tool] = config.enabledTools.compactMap { toolName in
-            switch toolName {
-            case "bashShell":
-                return BashShell(workingDirectory: workingDir)
-            default:
-                return nil
-            }
-        }
-
-        // Try to restore transcript from saved data
-        var initialSession: LanguageModelSession
-        if let transcriptData = session.transcriptData,
-           let restoredTranscript = try? Self.deserializeTranscript(from: transcriptData) {
-            // Create session with restored transcript
-            initialSession = LanguageModelSession(
-                tools: tools,
-                transcript: restoredTranscript
-            )
-        } else {
-            // Create new session with no transcript
-            initialSession = LanguageModelSession(
-                tools: tools,
-                instructions: systemPrompt
-            )
-        }
-
+        let initialSession = session.initialLanguageModelSession()
         _languageModelSession = State(initialValue: initialSession)
     }
 
@@ -141,18 +103,11 @@ struct ChatView: View {
 
     private func saveTranscript() {
         do {
-            let transcriptEntries = Array(languageModelSession.transcript)
-            let serialized = try transcriptEntries.serialize()
-            session.transcriptData = serialized
+            session.transcript = languageModelSession.transcript
             try modelContext.save()
         } catch {
             print("Warning: Failed to save transcript: \(error)")
         }
-    }
-
-    private static func deserializeTranscript(from data: Data) throws -> FoundationModels.Transcript {
-        let entries = try [FoundationModels.Transcript.Entry].deserialize(from: data)
-        return FoundationModels.Transcript(entries: entries)
     }
 
     private func updateWorkingDirectory() {

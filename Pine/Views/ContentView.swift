@@ -42,7 +42,6 @@ struct ContentView: View {
         withAnimation {
             let config = Configuration.load()
             let newSession = Session(
-                timestamp: Date(),
                 workingDirectory: config.workingDirectory,
                 title: nil
             )
