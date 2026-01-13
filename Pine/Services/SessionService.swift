@@ -11,16 +11,13 @@ import SwiftData
 /// Protocol for session service to enable dependency injection and testing
 protocol SessionServiceProtocol {
     /// Create a new session
-    func createSession(workingDirectory: String?, title: String?) throws
+    func createSession(title: String?) throws
 
     /// Delete an existing session
     func deleteSession(_ session: Session) throws
 
     /// Fetch all sessions sorted by creation date
     func fetchSessions() -> [Session]
-
-    /// Update the working directory for a session
-    func updateWorkingDirectory(_ session: Session, workingDirectory: String) throws
 }
 
 /// Service that handles session CRUD operations
@@ -32,8 +29,8 @@ class SessionService: SessionServiceProtocol {
         self.modelContext = modelContext
     }
 
-    func createSession(workingDirectory: String?, title: String?) throws {
-        let session = Session(workingDirectory: workingDirectory, title: title)
+    func createSession(title: String?) throws {
+        let session = Session(title: title)
         modelContext.insert(session)
         try modelContext.save()
     }

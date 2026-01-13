@@ -28,7 +28,7 @@ struct WorkingDirectoryTitlebarModifier: ViewModifier {
                     updateWindowTitle(window: window)
                 }
             }
-            .onChange(of: session.workingDirectory) { _, _ in
+            .onChange(of: session.transcriptData) { _, _ in
                 if let window = currentWindow {
                     updateWindowTitle(window: window)
                 }
@@ -49,7 +49,7 @@ struct WorkingDirectoryTitlebarModifier: ViewModifier {
     private func updateWindowTitle(window: NSWindow) {
         window.title = session.displayTitle
 
-        if let workingDir = session.workingDirectory {
+        if let workingDir = session.currentWorkingDirectory {
             window.representedURL = URL(fileURLWithPath: workingDir)
         } else {
             window.representedURL = nil

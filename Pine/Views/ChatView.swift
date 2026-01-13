@@ -12,9 +12,6 @@ import SwiftData
 struct ChatView: View {
     @Bindable var viewModel: ChatViewModel
     @State private var transcriptCount = 0
-    @State private var isSelectingDirectory = false
-    @State private var showDirectoryError = false
-    @State private var directoryError: String?
 
     init(viewModel: ChatViewModel) {
         self.viewModel = viewModel
@@ -69,13 +66,6 @@ struct ChatView: View {
             .padding()
         }
         .workingDirectoryTitlebar(session: viewModel.session)
-        .onChange(of: viewModel.session.workingDirectory) { oldValue, newValue in
-//            updateWorkingDirectory()
-        }
-    }
-
-    private func updateWorkingDirectory() {
-        // TODO:
     }
 }
 

@@ -31,11 +31,7 @@ class SessionListViewModel {
     }
 
     func createNewSession() {
-        let config = configService.loadConfiguration()
-        try? sessionService.createSession(
-            workingDirectory: config.workingDirectory,
-            title: nil
-        )
+        try? sessionService.createSession(title: nil)
         loadSessions()
     }
 
