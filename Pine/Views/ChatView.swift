@@ -55,15 +55,6 @@ struct ChatView: View {
                         Task { await viewModel.sendMessage() }
                     }
                 )
-
-                if viewModel.isLoading {
-                    Button("Stop") {}
-                } else {
-                    Button("Send") {
-                        Task { await viewModel.sendMessage() }
-                    }
-                    .disabled(viewModel.inputText.isEmpty)
-                }
             }
             .padding()
         }
