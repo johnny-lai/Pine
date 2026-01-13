@@ -47,12 +47,14 @@ struct ChatView: View {
             Divider()
 
             HStack {
-                TextField("Type your message...", text: $viewModel.inputText)
-                    .textFieldStyle(.roundedBorder)
-                    .disabled(viewModel.isLoading)
-                    .onSubmit {
+                InputTextField(
+                    text: $viewModel.inputText,
+                    isLoading: viewModel.isLoading,
+                    getCurrentDirectory: { viewModel.getCurrentDirectory() },
+                    onSubmit: {
                         Task { await viewModel.sendMessage() }
                     }
+                )
 
                 if viewModel.isLoading {
                     Button("Stop") {}

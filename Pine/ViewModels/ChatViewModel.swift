@@ -89,6 +89,13 @@ class ChatViewModel {
         }
     }
 
+    // MARK: - Directory Support
+
+    /// Get current working directory for the session
+    func getCurrentDirectory() -> String {
+        Self.getCurrentWorkingDirectory(from: session, config: configService.loadConfiguration())
+    }
+
     // MARK: - Directory Change Support
 
     /// Get current working directory from session's transcript
