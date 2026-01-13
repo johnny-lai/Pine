@@ -16,6 +16,7 @@ class ChatViewModel {
     private let languageModelService: LanguageModelServiceProtocol
     private let configService: ConfigurationServiceProtocol
     private let toolFactory: ToolFactoryProtocol
+    private let sessionService: SessionServiceProtocol
 
     // Model
     var session: Session
@@ -29,12 +30,14 @@ class ChatViewModel {
         session: Session,
         languageModelService: LanguageModelServiceProtocol,
         configService: ConfigurationServiceProtocol,
-        toolFactory: ToolFactoryProtocol
+        toolFactory: ToolFactoryProtocol,
+        sessionService: SessionServiceProtocol
     ) {
         self.session = session
         self.languageModelService = languageModelService
         self.configService = configService
         self.toolFactory = toolFactory
+        self.sessionService = sessionService
 
         // Setup language model session
         let config = configService.loadConfiguration()

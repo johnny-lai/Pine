@@ -18,6 +18,9 @@ protocol SessionServiceProtocol {
 
     /// Fetch all sessions sorted by creation date
     func fetchSessions() -> [Session]
+
+    /// Update the working directory for a session
+    func updateWorkingDirectory(_ session: Session, workingDirectory: String) throws
 }
 
 /// Service that handles session CRUD operations

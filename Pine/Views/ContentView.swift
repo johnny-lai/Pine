@@ -23,13 +23,14 @@ struct ContentView: View {
             List {
                 ForEach(sessions) { session in
                     NavigationLink {
-                        if let languageModelService {
+                        if let languageModelService, let sessionService {
                             ChatView(
                                 viewModel: ChatViewModel(
                                     session: session,
                                     languageModelService: languageModelService,
                                     configService: configurationService,
-                                    toolFactory: toolFactory
+                                    toolFactory: toolFactory,
+                                    sessionService: sessionService
                                 )
                             )
                         }

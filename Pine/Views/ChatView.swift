@@ -12,6 +12,9 @@ import SwiftData
 struct ChatView: View {
     @Bindable var viewModel: ChatViewModel
     @State private var transcriptCount = 0
+    @State private var isSelectingDirectory = false
+    @State private var showDirectoryError = false
+    @State private var directoryError: String?
 
     init(viewModel: ChatViewModel) {
         self.viewModel = viewModel
@@ -21,7 +24,7 @@ struct ChatView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: ChatLayout.bubbleSpacing) {
-                    ForEach(self.viewModel.languageModelSession.transcript) { entry in
+                    ForEach(viewModel.languageModelSession.transcript) { entry in
                         switch entry {
                         case let .instructions(instructions):
                             InstructionsView(instructions)
@@ -37,6 +40,9 @@ struct ChatView: View {
                             Text("Unknown entry type")
                         }
                     }
+                    if viewModel.isLoading {
+                        Text("Thinking")
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 12)
@@ -51,17 +57,21 @@ struct ChatView: View {
                         Task { await viewModel.sendMessage() }
                     }
 
-                Button("Send") {
-                    Task { await viewModel.sendMessage() }
+                if viewModel.isLoading {
+                    Button("Stop") {}
+                } else {
+                    Button("Send") {
+                        Task { await viewModel.sendMessage() }
+                    }
+                    .disabled(viewModel.inputText.isEmpty)
                 }
-                .disabled(viewModel.inputText.isEmpty || viewModel.isLoading)
             }
             .padding()
         }
-//        .workingDirectoryTitlebar(session: session)
-//        .onChange(of: session.workingDirectory) { oldValue, newValue in
+        .workingDirectoryTitlebar(session: viewModel.session)
+        .onChange(of: viewModel.session.workingDirectory) { oldValue, newValue in
 //            updateWorkingDirectory()
-//        }
+        }
     }
 
     private func updateWorkingDirectory() {
