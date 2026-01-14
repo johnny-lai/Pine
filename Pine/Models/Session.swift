@@ -20,6 +20,10 @@ final class Session {
     @Attribute(.externalStorage)
     var transcriptData: Data?
 
+    // Store session events as JSON in external storage
+    @Attribute(.externalStorage)
+    var eventsData: Data?
+
     init(title: String? = nil) {
         self.id = UUID()
         self.title = title
@@ -54,29 +58,25 @@ final class Session {
         title ?? "Session \(createdAt.formatted(date: .numeric, time: .shortened))"
     }
 
-    // Computed property to derive current working directory from transcript
-    var currentWorkingDirectory: String? {
-        // Scan transcript backwards to find most recent ChangeDirectory tool output
-        for entry in transcript.reversed() {
-            if case .toolOutput(let toolOutput) = entry {
-                // Check if this is a ChangeDirectory tool output
-                if toolOutput.toolName == "ChangeDirectory" {
-                    // Extract the path from the segments
-                    // The segment should contain text like "Changed working directory to: /path"
-                    for segment in toolOutput.segments {
-                        if case .text(let textSegment) = segment {
-                            let text = textSegment.content
-                            if text.hasPrefix("Changed working directory to: ") {
-                                let path = text.dropFirst("Changed working directory to: ".count)
-                                return String(path)
-                            }
-                        }
-                    }
-                }
+    // Computed property for session events
+    var events: [SessionEvent] {
+        get {
+            guard let data = eventsData else { return [] }
+            return (try? JSONDecoder().decode([SessionEvent].self, from: data)) ?? []
+        }
+        set {
+            eventsData = try? JSONEncoder().encode(newValue)
+            updatedAt = Date()
+        }
+    }
+
+    // Computed property - walks events backwards to find current directory
+    var workingDirectory: String? {
+        for event in events.reversed() {
+            if case .directoryChange(_, let to) = event.type {
+                return to
             }
         }
-
-        // No directory change found in transcript
-        return nil
+        return nil  // No directory change in events
     }
 }

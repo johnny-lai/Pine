@@ -35,6 +35,21 @@ Pine/
 
 All services use protocol-based design for testability and flexibility.
 
+### Transcript & Session Events
+
+Pine uses two separate data structures for chat display:
+
+1. **LLM Transcript** (`FoundationModels.Transcript`): Stores the actual LLM conversation (prompts, responses, tool calls). Managed by `LanguageModelSession`.
+
+2. **Session Events** (`[SessionEvent]`): Stores session metadata like directory changes. Defined in `SessionEvent.swift`.
+
+These are **interleaved by position** for display:
+- Each `SessionEvent` has a `transcriptPosition` indicating where it belongs relative to transcript entries
+- `ChatView.interleavedEntries` combines both for rendering
+- Multiple events at the same position are ordered by array index
+
+The `workingDirectory` is computed by walking session events backwards (no stored property).
+
 ---
 
 ## Future: LLM Provider Flexibility

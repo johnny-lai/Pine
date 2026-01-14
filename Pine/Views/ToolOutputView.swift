@@ -17,53 +17,6 @@ struct ToolOutputView: View {
     }
 
     var body: some View {
-        // Check if this is a directory change output
-        if isDirectoryChangeOutput {
-            directoryChangeOutputView
-        } else {
-            genericToolOutputView
-        }
-    }
-
-    private var isDirectoryChangeOutput: Bool {
-        // Check if this is a ChangeDirectory tool output
-        return toolOutput.toolName == "ChangeDirectory"
-    }
-
-    private var outputContent: String {
-        // Extract text from segments
-        toolOutput.segments.compactMap { segment in
-            if case .text(let textSegment) = segment {
-                return textSegment.content
-            }
-            return nil
-        }.joined(separator: "\n")
-    }
-
-    private var isSuccess: Bool {
-        outputContent.hasPrefix("Changed working directory")
-    }
-
-    private var directoryChangeOutputView: some View {
-        MessageBubble(
-            alignment: .leading,
-            backgroundColor: ChatColors.toolBubble,
-            textColor: ChatColors.toolText,
-            icon: isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
-            label: nil
-        ) {
-            HStack(spacing: 8) {
-                Image(systemName: isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .foregroundColor(isSuccess ? .green : .orange)
-                Text(outputContent)
-                    .font(ChatTypography.labelFont)
-                    .foregroundColor(ChatColors.toolText)
-            }
-            .padding(.vertical, 4)
-        }
-    }
-
-    private var genericToolOutputView: some View {
         MessageBubble(
             alignment: .leading,
             backgroundColor: ChatColors.toolBubble,

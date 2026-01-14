@@ -9,32 +9,61 @@ import FoundationModels
 import SwiftUI
 import SwiftData
 
+/// Wrapper for interleaved display of transcript entries and session events
+enum DisplayEntry: Identifiable {
+    case transcript(Transcript.Entry)
+    case event(SessionEvent)
+
+    var id: String {
+        switch self {
+        case .transcript(let entry): return "t-\(entry.id)"
+        case .event(let event): return "e-\(event.id)"
+        }
+    }
+}
+
 struct ChatView: View {
     @Bindable var viewModel: ChatViewModel
-    @State private var transcriptCount = 0
 
     init(viewModel: ChatViewModel) {
         self.viewModel = viewModel
+    }
+
+    /// Interleave transcript entries and session events by position
+    var interleavedEntries: [DisplayEntry] {
+        var result: [DisplayEntry] = []
+        var eventIndex = 0
+        let events = viewModel.session.events
+        let transcript = Array(viewModel.languageModelSession.transcript)
+
+        for (i, entry) in transcript.enumerated() {
+            // Insert events that belong at this position
+            while eventIndex < events.count && events[eventIndex].transcriptPosition == i {
+                result.append(.event(events[eventIndex]))
+                eventIndex += 1
+            }
+            result.append(.transcript(entry))
+        }
+
+        // Append remaining events after transcript
+        while eventIndex < events.count {
+            result.append(.event(events[eventIndex]))
+            eventIndex += 1
+        }
+
+        return result
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: ChatLayout.bubbleSpacing) {
-                    ForEach(viewModel.languageModelSession.transcript) { entry in
+                    ForEach(interleavedEntries) { entry in
                         switch entry {
-                        case let .instructions(instructions):
-                            InstructionsView(instructions)
-                        case let .prompt(prompt):
-                            PromptView(prompt)
-                        case let .toolCalls(toolCalls):
-                            ToolCallsView(toolCalls)
-                        case let .toolOutput(toolOutput):
-                            ToolOutputView(toolOutput)
-                        case let .response(response):
-                            ResponseView(response)
-                        @unknown default:
-                            Text("Unknown entry type")
+                        case .transcript(let transcriptEntry):
+                            TranscriptEntryView(entry: transcriptEntry)
+                        case .event(let sessionEvent):
+                            SessionEventView(event: sessionEvent)
                         }
                     }
                     if viewModel.isLoading {
@@ -59,6 +88,28 @@ struct ChatView: View {
             .padding()
         }
         .workingDirectoryTitlebar(session: viewModel.session)
+    }
+}
+
+/// Helper view to render a single transcript entry
+struct TranscriptEntryView: View {
+    let entry: Transcript.Entry
+
+    var body: some View {
+        switch entry {
+        case let .instructions(instructions):
+            InstructionsView(instructions)
+        case let .prompt(prompt):
+            PromptView(prompt)
+        case let .toolCalls(toolCalls):
+            ToolCallsView(toolCalls)
+        case let .toolOutput(toolOutput):
+            ToolOutputView(toolOutput)
+        case let .response(response):
+            ResponseView(response)
+        @unknown default:
+            Text("Unknown entry type")
+        }
     }
 }
 

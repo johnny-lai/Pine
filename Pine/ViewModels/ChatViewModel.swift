@@ -98,10 +98,10 @@ class ChatViewModel {
 
     // MARK: - Directory Change Support
 
-    /// Get current working directory from session's transcript
+    /// Get current working directory from session's events
     private static func getCurrentWorkingDirectory(from session: Session, config: Configuration) -> String {
-        // First try to get from transcript
-        if let workingDir = session.currentWorkingDirectory {
+        // First try to get from session events
+        if let workingDir = session.workingDirectory {
             // Validate directory exists
             if FileManager.default.fileExists(atPath: workingDir) {
                 return workingDir
@@ -127,8 +127,7 @@ class ChatViewModel {
         let path = String(input.dropFirst(3)).trimmingCharacters(in: .whitespaces)
 
         if path.isEmpty {
-            // TODO: Could open a directory picker here
-            await appendDirectoryChangeToTranscript(path: "", success: false, error: "No path provided. Usage: /cd <path>")
+            // TODO: Could open a directory picker here or show error
             return true
         }
 
@@ -136,7 +135,7 @@ class ChatViewModel {
         return true
     }
 
-    /// Change the working directory and record in transcript
+    /// Change the working directory and record as session event
     func changeDirectory(to path: String) async {
         // Expand tilde and resolve relative paths
         var finalPath = (path as NSString).expandingTildeInPath
@@ -153,64 +152,35 @@ class ChatViewModel {
         // Validate directory exists and is actually a directory
         var isDirectory: ObjCBool = false
         if !FileManager.default.fileExists(atPath: finalPath, isDirectory: &isDirectory) {
-            await appendDirectoryChangeToTranscript(path: finalPath, success: false, error: "Directory does not exist: \(finalPath)")
+            // TODO: Could show error in UI
+            print("Directory does not exist: \(finalPath)")
             return
         }
 
         if !isDirectory.boolValue {
-            await appendDirectoryChangeToTranscript(path: finalPath, success: false, error: "Path is not a directory: \(finalPath)")
+            // TODO: Could show error in UI
+            print("Path is not a directory: \(finalPath)")
             return
         }
 
-        // Success - append to transcript
-        await appendDirectoryChangeToTranscript(path: finalPath, success: true, error: nil)
+        // Create event at current transcript position
+        let position = languageModelSession.transcript.count
+        let event = SessionEvent(
+            type: .directoryChange(from: session.workingDirectory, to: finalPath),
+            transcriptPosition: position
+        )
+
+        // Append event - workingDirectory is computed from events
+        var events = session.events
+        events.append(event)
+        session.events = events
 
         // Recreate tools with new working directory
         await updateToolsWithCurrentDirectory()
     }
 
-    /// Manually append ToolCall and ToolOutput entries for directory change
-    private func appendDirectoryChangeToTranscript(path: String, success: Bool, error: String?) async {
-        let toolCallId = UUID().uuidString
-
-        // Create arguments as GeneratedContent with properties
-        let argumentsContent = GeneratedContent(properties: ["path": path])
-
-        let toolCall = Transcript.ToolCall(
-            id: toolCallId,
-            toolName: "ChangeDirectory",
-            arguments: argumentsContent
-        )
-
-        let toolCalls = Transcript.ToolCalls([toolCall])
-
-        // Create the corresponding ToolOutput
-        let outputMessage: String
-        if success {
-            outputMessage = "Changed working directory to: \(path)"
-        } else {
-            outputMessage = error ?? "Failed to change directory"
-        }
-
-        // Create a text segment for the output
-        let textSegment = Transcript.TextSegment(content: outputMessage)
-        let segment = Transcript.Segment.text(textSegment)
-
-        let toolOutput = Transcript.ToolOutput(
-            id: UUID().uuidString,
-            toolName: "ChangeDirectory",
-            segments: [segment]
-        )
-
-        // Create new transcript with the directory change entries appended
-        let currentEntries = Array(languageModelSession.transcript)
-        let newEntries: [Transcript.Entry] = [
-            .toolCalls(toolCalls),
-            .toolOutput(toolOutput)
-        ]
-        let updatedTranscript = Transcript(entries: currentEntries + newEntries)
-
-        // Get current tools and system prompt from the session
+    /// Update tools with the current working directory
+    private func updateToolsWithCurrentDirectory() async {
         let config = configService.loadConfiguration()
         let workingDir = Self.getCurrentWorkingDirectory(from: session, config: config)
         let tools = toolFactory.createTools(
@@ -218,24 +188,10 @@ class ChatViewModel {
             workingDirectory: workingDir
         )
 
-        // Recreate the session with the updated transcript
+        // Recreate language model session with updated tools
         languageModelSession = LanguageModelSession(
             tools: tools,
-            transcript: updatedTranscript
+            transcript: languageModelSession.transcript
         )
-
-        // Save the updated transcript to the session
-        do {
-            try languageModelService.saveTranscript(updatedTranscript, to: session)
-        } catch {
-            print("Failed to save transcript: \(error)")
-        }
-    }
-
-    /// Update tools with the current working directory
-    /// Note: This is now handled by recreating the session with updated transcript in appendDirectoryChangeToTranscript
-    private func updateToolsWithCurrentDirectory() async {
-        // Tools are updated when we recreate the LanguageModelSession
-        // with the new transcript in appendDirectoryChangeToTranscript
     }
 }
