@@ -54,24 +54,44 @@ struct ChatView: View {
         return result
     }
 
+    private var scrollAnchorID: String { "scroll-anchor" }
+
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: ChatLayout.bubbleSpacing) {
-                    ForEach(interleavedEntries) { entry in
-                        switch entry {
-                        case .transcript(let transcriptEntry):
-                            TranscriptEntryView(entry: transcriptEntry)
-                        case .event(let sessionEvent):
-                            SessionEventView(event: sessionEvent)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: ChatLayout.bubbleSpacing) {
+                        ForEach(interleavedEntries) { entry in
+                            switch entry {
+                            case .transcript(let transcriptEntry):
+                                TranscriptEntryView(entry: transcriptEntry)
+                            case .event(let sessionEvent):
+                                SessionEventView(event: sessionEvent)
+                            }
                         }
+                        if viewModel.isLoading {
+                            Text("Thinking")
+                        }
+                        Color.clear
+                            .frame(height: 1)
+                            .id(scrollAnchorID)
                     }
-                    if viewModel.isLoading {
-                        Text("Thinking")
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                }
+                .onChange(of: interleavedEntries.count) {
+                    withAnimation {
+                        proxy.scrollTo(scrollAnchorID, anchor: .bottom)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
+                .onChange(of: viewModel.isLoading) {
+                    withAnimation {
+                        proxy.scrollTo(scrollAnchorID, anchor: .bottom)
+                    }
+                }
+                .onAppear {
+                    proxy.scrollTo(scrollAnchorID, anchor: .bottom)
+                }
             }
             Divider()
 
@@ -80,9 +100,8 @@ struct ChatView: View {
                     text: $viewModel.inputText,
                     isLoading: viewModel.isLoading,
                     getCurrentDirectory: { viewModel.getCurrentDirectory() },
-                    onSubmit: {
-                        Task { await viewModel.sendMessage() }
-                    }
+                    onSubmit: { viewModel.submit() },
+                    onStop: { viewModel.stop() }
                 )
             }
             .padding()

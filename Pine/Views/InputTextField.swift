@@ -13,16 +13,19 @@ struct InputTextField: View {
     var isLoading: Bool
     var getCurrentDirectory: () -> String
     var onSubmit: () -> Void
+    var onStop: () -> Void
 
     @State private var directoryCompleter = DirectoryCompleter()
     @State private var showDropdown = false
     @State private var dropdownSuggestions: [String] = []
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         ZStack(alignment: .topLeading) {
             HStack {
                 TextField("Type your message...", text: $text)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isFocused)
                     .disabled(isLoading)
                     .onKeyPress(.tab) {
                         handleTabCompletion()
@@ -42,7 +45,7 @@ struct InputTextField: View {
                     }
                     .onSubmit { handleSubmit() }
                 if isLoading {
-                    Button("Stop") {}
+                    Button("Stop", action: onStop)
                 } else {
                     Button(action: handleSubmit) {
                         Image(systemName: "paperplane.fill")
@@ -62,6 +65,9 @@ struct InputTextField: View {
                     .padding(.top, 28) // Position below text field
                     .zIndex(1000)
             }
+        }
+        .onAppear {
+            isFocused = true
         }
     }
 
@@ -187,6 +193,7 @@ extension DirectoryCompleter {
         text: .constant(""),
         isLoading: false,
         getCurrentDirectory: { "~/" },
-        onSubmit: { }
+        onSubmit: { },
+        onStop: { }
     )
 }

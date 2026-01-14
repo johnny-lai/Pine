@@ -25,6 +25,7 @@ class ChatViewModel {
     var languageModelSession: LanguageModelSession
     var inputText: String = ""
     var isLoading: Bool = false
+    private var currentTask: Task<Void, Never>?
 
     init(
         session: Session,
@@ -59,7 +60,13 @@ class ChatViewModel {
         )
     }
 
-    func sendMessage() async {
+    func submit() {
+        currentTask = Task {
+            await sendMessage()
+        }
+    }
+
+    private func sendMessage() async {
         guard !inputText.isEmpty else { return }
 
         // Check for slash commands
@@ -72,13 +79,14 @@ class ChatViewModel {
         inputText = ""
         isLoading = true
 
-        defer { isLoading = false }
-
         do {
             self.languageModelSession = try await languageModelService.sendMessage(
                 message,
                 session: languageModelSession
             )
+
+            // Check if cancelled before saving
+            guard !Task.isCancelled else { return }
 
             try languageModelService.saveTranscript(
                 languageModelSession.transcript,
@@ -87,6 +95,14 @@ class ChatViewModel {
         } catch {
             print("Failed to send message: \(error)")
         }
+
+        isLoading = false
+    }
+
+    func stop() {
+        currentTask?.cancel()
+        currentTask = nil
+        isLoading = false
     }
 
     // MARK: - Directory Support
