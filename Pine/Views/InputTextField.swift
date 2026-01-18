@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Text input field with tab completion for `/cd` command
+/// Text input field with tab completion for commands
 struct InputTextField: View {
     @Binding var text: String
     var isLoading: Bool
@@ -15,7 +15,7 @@ struct InputTextField: View {
     var onSubmit: () -> Void
     var onStop: () -> Void
 
-    @State private var directoryCompleter = DirectoryCompleter()
+    @State private var autoCompleter = AutoCompleter()
     @State private var showDropdown = false
     @State private var dropdownSuggestions: [String] = []
     @FocusState private var isFocused: Bool
@@ -38,9 +38,9 @@ struct InputTextField: View {
                     }
                     .onChange(of: text) { oldValue, newValue in
                         // Hide dropdown and reset completion state if user manually edited text
-                        if !newValue.hasPrefix("/cd ") || newValue != oldValue {
+                        if newValue != oldValue {
                             showDropdown = false
-                            directoryCompleter.reset()
+                            autoCompleter.reset()
                         }
                     }
                     .onSubmit { handleSubmit() }
@@ -124,10 +124,8 @@ struct InputTextField: View {
     }
 
     private func handleTabCompletion() {
-        guard text.hasPrefix("/cd ") else { return }
-
         let currentDir = getCurrentDirectory()
-        let result = directoryCompleter.complete(text, currentDirectory: currentDir)
+        let result = autoCompleter.complete(text, currentDirectory: currentDir)
 
         switch result {
         case .noMatches:
@@ -149,42 +147,17 @@ struct InputTextField: View {
 
     private func selectSuggestion(_ suggestion: String) {
         let currentDir = getCurrentDirectory()
-        guard text.hasPrefix("/cd ") else { return }
 
-        let path = String(text.dropFirst(4))
+        if let strategy = autoCompleter.currentStrategy(for: text) {
+            text = strategy.buildCompletion(
+                from: text,
+                suggestion: suggestion,
+                currentDirectory: currentDir
+            )
+        }
 
-        // Build the completed path
-        let expandedPath = directoryCompleter.expandPath(path, relativeTo: currentDir)
-        let (directory, _) = directoryCompleter.splitPath(expandedPath)
-        let completed = (directory as NSString).appendingPathComponent(suggestion)
-        let normalized = (completed as NSString).standardizingPath
-
-        text = "/cd \(normalized)/"
         showDropdown = false
-        directoryCompleter.reset()
-    }
-}
-
-// Extension to make DirectoryCompleter methods accessible
-extension DirectoryCompleter {
-    func expandPath(_ path: String, relativeTo currentDir: String) -> String {
-        if path.hasPrefix("~/") {
-            return (path as NSString).expandingTildeInPath
-        } else if path.hasPrefix("/") {
-            return path
-        } else {
-            return (currentDir as NSString).appendingPathComponent(path)
-        }
-    }
-
-    func splitPath(_ path: String) -> (directory: String, prefix: String) {
-        if path.hasSuffix("/") || path.isEmpty {
-            return (path.isEmpty ? "/" : path, "")
-        } else {
-            let directory = (path as NSString).deletingLastPathComponent
-            let prefix = (path as NSString).lastPathComponent
-            return (directory.isEmpty ? "/" : directory, prefix)
-        }
+        autoCompleter.reset()
     }
 }
 
