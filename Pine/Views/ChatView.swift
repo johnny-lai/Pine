@@ -24,6 +24,7 @@ enum DisplayEntry: Identifiable {
 
 struct ChatView: View {
     @Bindable var viewModel: ChatViewModel
+    @Environment(\.dismiss) private var dismiss
 
     init(viewModel: ChatViewModel) {
         self.viewModel = viewModel
@@ -107,6 +108,20 @@ struct ChatView: View {
             .padding()
         }
         .workingDirectoryTitlebar(session: viewModel.session)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(role: .destructive) {
+                    deleteSession()
+                } label: {
+                    Label("Delete Session", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    private func deleteSession() {
+        viewModel.deleteSession()
+        dismiss()
     }
 }
 

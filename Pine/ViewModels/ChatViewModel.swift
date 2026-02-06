@@ -105,6 +105,12 @@ class ChatViewModel {
         isLoading = false
     }
 
+    // MARK: - Session Management
+
+    func deleteSession() {
+        try? sessionService.deleteSession(session)
+    }
+
     // MARK: - Directory Support
 
     /// Get current working directory for the session
