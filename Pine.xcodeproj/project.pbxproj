@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		625DC3C22F07731F00C65A92 /* TOMLKit in Frameworks */ = {isa = PBXBuildFile; productRef = 625DC3C12F07731F00C65A92 /* TOMLKit */; };
+		8E2B1067CEC64C6B8FBFA536 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0533DDAD521C47B7B3871639 /* MarkdownUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +65,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				625DC3C22F07731F00C65A92 /* TOMLKit in Frameworks */,
+				8E2B1067CEC64C6B8FBFA536 /* MarkdownUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,6 +130,7 @@
 			name = Pine;
 			packageProductDependencies = (
 				625DC3C12F07731F00C65A92 /* TOMLKit */,
+				0533DDAD521C47B7B3871639 /* MarkdownUI */,
 			);
 			productName = Pine;
 			productReference = 625DC3752F05ED2300C65A92 /* Pine.app */;
@@ -213,6 +216,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				625DC3C02F07730700C65A92 /* XCRemoteSwiftPackageReference "TOMLKit" */,
+				C9DAB03EF18245059709D9A7 /* XCRemoteSwiftPackageReference "MarkdownUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 625DC3762F05ED2300C65A92 /* Products */;
@@ -590,6 +594,14 @@
 				minimumVersion = 0.6.0;
 			};
 		};
+		C9DAB03EF18245059709D9A7 /* XCRemoteSwiftPackageReference "MarkdownUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -597,6 +609,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 625DC3C02F07730700C65A92 /* XCRemoteSwiftPackageReference "TOMLKit" */;
 			productName = TOMLKit;
+		};
+		0533DDAD521C47B7B3871639 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9DAB03EF18245059709D9A7 /* XCRemoteSwiftPackageReference "MarkdownUI" */;
+			productName = MarkdownUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

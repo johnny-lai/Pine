@@ -6,10 +6,12 @@
 //
 
 import FoundationModels
+import MarkdownUI
 import SwiftUI
 
 struct ResponseView: View {
     let response: Transcript.Response
+    @State private var showsMarkdown = true
 
     init(_ response: Transcript.Response) {
         self.response = response
@@ -23,9 +25,21 @@ struct ResponseView: View {
             icon: "cpu",
             label: "Assistant"
         ) {
-            Text(String(describing: response))
-                .font(ChatTypography.messageFont)
-                .lineSpacing(ChatTypography.messageLineSpacing)
+            if showsMarkdown {
+                Markdown(String(describing: response))
+                    .font(ChatTypography.messageFont)
+            } else {
+                Text(String(describing: response))
+                    .font(ChatTypography.messageFont)
+                    .lineSpacing(ChatTypography.messageLineSpacing)
+            }
+        } accessory: {
+            Button(showsMarkdown ? "Show Raw" : "Show Markdown") {
+                showsMarkdown.toggle()
+            }
+            .buttonStyle(.borderless)
+            .font(ChatTypography.labelFont)
+            .foregroundColor(ChatTypography.labelText)
         }
     }
 }
